@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+      <link rel="shortcut icon" href="favicongrow.png" type="image/x-icon">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+  <!-- Firebase App (the core Firebase SDK) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <!-- Firebase Realtime Database -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+</head>
+<body class="bg-white min-h-screen flex flex-col">
+  <!-- Sidebar toggle button for small screens -->
+  <button id="sidebarToggle" class="md:hidden absolute top-4 left-4 z-50 p-2 rounded-md bg-blue-500 text-white focus:outline-none">
+    <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </button>
+  <div class="flex flex-1 min-h-screen">
+    <!-- Sidebar -->
+   <div id="sidebar" class="fixed inset-y-0 left-0 w-64 bg-blue-500 p-4 flex flex-col transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out z-40">
+      <h2 class="text-white text-xl font-semibold mb-6 border-b border-blue-400 pb-2">Menu Principal</h2>
+      <nav class="flex flex-col space-y-3 flex-grow overflow-y-auto">
+        <a href="paginaprincipal.html" class="bg-blue-400 hover:bg-blue-600 text-white py-2 rounded-md flex items-center px-3">
+          <i class="fas fa-bars text-lg mr-3"></i>
+          <span>Menu Principal</span>
+        </a>
+        <a href="vendas.html" class="bg-blue-400 hover:bg-blue-600 text-white py-2 rounded-md flex items-center px-3">
+          <i class="fas fa-cash-register text-lg mr-3"></i>
+          <span>Registrar venda</span>
+        </a>
+        <a href="fluxocaixa.html" class="bg-blue-400 hover:bg-blue-600 text-white py-2 rounded-md flex items-center px-3">
+          <i class="fas fa-wallet text-lg mr-3"></i>
+          <span>Fluxo de caixa</span>
+        </a>
+        <a href="garantia.html" class="bg-blue-400 hover:bg-blue-600 text-white py-2 rounded-md flex items-center px-3">
+          <i class="fas fa-shield-alt text-lg mr-3"></i>
+          <span>Garantia</span>
+        </a>
+        <a href="fornecedores.html" class="bg-blue-400 hover:bg-blue-600 text-white py-2 rounded-md flex items-center px-3">
+          <i class="fas fa-truck text-lg mr-3"></i>
+          <span>Fornecedores</span>
+        </a>
+        <a href="orcamento.html" class="bg-blue-400 hover:bg-blue-600 text-white py-2 rounded-md flex items-center px-3">
+          <i class="fas fa-calculator text-lg mr-3"></i>
+          <span>Orçamento</span>
+        </a>
+        <a href="estoque.html" class="bg-blue-400 hover:bg-blue-600 text-white py-2 rounded-md flex items-center px-3">
+          <i class="fas fa-cog text-lg mr-3"></i>
+          <span>Estoque de peças</span>
+        </a>
+        <a href="historicodevendas.html" class="bg-blue-400 hover:bg-blue-600 text-white py-2 rounded-md flex items-center px-3">
+          <i class="fas fa-history text-lg mr-3"></i>
+          <span>Historico de vendas</span>
+        </a>
+        <a href="devedores.html" class="bg-blue-400 hover:bg-blue-600 text-white py-2 rounded-md flex items-center px-3">
+          <i class="fas fa-user-clock text-lg mr-3"></i>
+          <span>Devedores</span>
+        </a>
+        <a href="usuarios.html" class="bg-blue-400 hover:bg-blue-600 text-white py-2 rounded-md flex items-center px-3">
+          <i class="fas fa-users text-lg mr-3"></i>
+          <span>usuarios</span>
+        </a>
+        <a href="dadosempresa.html" class="bg-blue-400 hover:bg-blue-600 text-white py-2 rounded-md flex items-center px-3">
+          <i class="fas fa-building text-lg mr-3"></i>
+          <span>Cadastrar empresa</span>
+        </a>
+        <a href="index.html" class="bg-blue-400 hover:bg-blue-600 text-white py-2 rounded-md flex items-center px-3">
+          <i class="fas fa-sign-out-alt text-lg mr-3"></i>
+          <span>sair</span>
+        </a>
+      </nav>
+    </div>
+
+
+   <!-- Main Content -->
+   <div id="mainContent" class="flex-1 p-4 overflow-auto md:ml-64">
+    <div class="flex items-center mb-4 justify-center relative">
+      <button id="menuToggle" class="md:hidden text-blue-500 focus:outline-none absolute left-0">
+        <i class="fas fa-bars text-3xl"></i>
+      </button>
+      <img alt="Logo" class="h-10 mx-auto" src="logoprincipal.png"/>
+      <div class="relative flex items-center space-x-4 absolute right-0">
+        <i class="fas fa-bell text-blue-500 text-2xl"></i>
+        <div id="userMenu" class="relative cursor-pointer">
+          <i class="fas fa-user-circle text-blue-500 text-2xl"></i>
+          <div id="userSubmenu" class="hidden absolute right-0 mt-2 w-48 bg-white border border-gray-300 rounded-md shadow-lg z-50">
+            <a href="usuarios.html" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Editar Perfil</a>
+            <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Chamar Suporte</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="mb-4">
+      <input type="text" id="searchInput" placeholder="Pesquisar por nome..." class="w-full max-w-md border border-gray-300 rounded px-3 py-2" />
+    </div>
+    <div id="devedoresContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+      <!-- Cards for devendo (debtors) will be added here -->
+    </div>
+   </div>
+  </div>
+
+  <script>
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebar = document.getElementById('sidebar');
+    const mainContent = document.getElementById('mainContent');
+
+    sidebarToggle.addEventListener('click', () => {
+      if (sidebar.classList.contains('-translate-x-full')) {
+        sidebar.classList.remove('-translate-x-full');
+        mainContent.classList.add('md:ml-64');
+      } else {
+        sidebar.classList.add('-translate-x-full');
+        mainContent.classList.remove('md:ml-64');
+      }
+    });
+  </script>
+  <audio id="notificationSound" src="notification.mp3" preload="auto"></audio>
+  <script>
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyBweOMaOxFGTJRa-6od4_tqpJZ5R1-I61o",
+      authDomain: "sismp2-651cf.firebaseapp.com",
+      databaseURL: "https://sismp2-651cf-default-rtdb.firebaseio.com",
+      projectId: "sismp2-651cf",
+      storageBucket: "sismp2-651cf.firebasestorage.app",
+      messagingSenderId: "181333188571",
+      appId: "1:181333188571:web:73c41411c749d3807ad1fe",
+      measurementId: "G-CR6KFGTWK0"
+    };
+
+    // Initialize Firebase
+    const app = firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    // Reference to "vendas" in the database
+    const saidasRef = database.ref('vendas');
+    // Reference to "estoque" in the database for product info
+    const estoqueRef = database.ref('estoque');
+
+    // Store all saidas for filtering
+    let allSaidas = [];
+    // Store product info map: key -> product object
+    let produtosMap = {};
+
+    // Fetch product data once and store in produtosMap
+    estoqueRef.once('value').then(snapshot => {
+      const produtos = snapshot.val();
+      if (produtos) {
+        Object.entries(produtos).forEach(([key, produto]) => {
+          produtosMap[key] = produto;
+        });
+      }
+    });
+
+    // Listen for new "saidas" added to the database
+  // Removed notification popup and sound as per user request
+  saidasRef.on('child_added', (snapshot) => {
+    // No notification popup or sound
+  });
+
+  // Display cards for "Devendo" entries in "vendas"
+  saidasRef.on('value', (snapshot) => {
+    const vendas = snapshot.val();
+    const devedoresContainer = document.getElementById('devedoresContainer');
+    devedoresContainer.innerHTML = ''; // Clear existing cards
+
+    if (vendas) {
+          Object.entries(vendas).forEach(([key, venda]) => {
+            if (venda.formaPagamento === 'Devendo') {
+              const card = document.createElement('div');
+              card.className = 'bg-white border border-gray-300 rounded-lg p-4 shadow hover:shadow-lg transition cursor-pointer';
+
+              card.innerHTML = `
+                <h3 class="text-blue-600 text-lg font-semibold mb-2">${venda.cliente || 'Cliente Desconhecido'}</h3>
+                <p><strong>Data da Venda:</strong> ${venda.dataVenda || 'Não especificada'}</p>
+                <p><strong>Nome:</strong> ${venda.nome || 'Não especificado'}</p>
+                <p><strong>Quantidade Retirada:</strong> ${venda.quantidadeRetirada || 'Desconhecido'}</p>
+              <p><strong>Valor Unitário:</strong> R$ <span id="valorUnitario-${venda.cliente}-${venda.dataVenda}">${venda.valorUnitario || 'Desconhecido'}</span></p>
+              <p><strong>Forma de Pagamento:</strong> ${venda.formaPagamento}</p>
+              <button class="mt-2 bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition" onclick="registrarPagamento('${key}', '${venda.cliente}', '${venda.dataVenda}', ${venda.valorUnitario})">Registrar Pagamento</button>
+              `;
+
+              devedoresContainer.appendChild(card);
+            }
+          });
+    } else {
+      devedoresContainer.innerHTML = '<p class="text-gray-500">Nenhum devedor encontrado.</p>';
+    }
+  });
+
+  function showPopup(modelo) {
+    // Notification popup function removed as per user request
+  }
+
+  // Function to handle payment registration button click
+  function registrarPagamento(vendaKey, cliente, dataVenda, valorUnitario) {
+    // Show modal with payment input
+    const modal = document.getElementById('paymentModal');
+    const modalTitle = document.getElementById('paymentModalTitle');
+    const modalContent = document.getElementById('paymentModalContent');
+    const paymentForm = document.getElementById('paymentForm');
+
+    modalTitle.textContent = `Registrar pagamento para ${cliente} - Venda em ${dataVenda}`;
+    modalContent.innerHTML = `
+      <label for="valorPago" class="block mb-2 font-semibold">Valor Pago (R$):</label>
+      <input type="number" id="valorPago" name="valorPago" min="0" max="${valorUnitario}" step="0.01" class="w-full border border-gray-300 rounded px-3 py-2" required />
+      <div class="mt-4 flex justify-end space-x-2">
+        <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition">Enviar</button>
+        <button type="button" id="cancelPaymentBtn" class="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400 transition">Cancelar</button>
+      </div>
+    `;
+
+    modal.classList.remove('hidden');
+
+    // Remove previous event listeners to avoid duplicates
+    paymentForm.onsubmit = null;
+    const cancelBtnOld = document.getElementById('cancelPaymentBtn');
+    if (cancelBtnOld) {
+      cancelBtnOld.onclick = null;
+    }
+
+    // Handle form submission
+    paymentForm.onsubmit = function(event) {
+      event.preventDefault();
+      const valorPagoInput = document.getElementById('valorPago');
+      const valorPago = parseFloat(valorPagoInput.value);
+      if (isNaN(valorPago) || valorPago <= 0 || valorPago > valorUnitario) {
+        alert('Por favor, insira um valor válido dentro do limite.');
+        return;
+      }
+
+      // Save payment info to Firebase under "pagamentos" node
+      const pagamentosRef = database.ref('pagamentos');
+      const newPagamentoRef = pagamentosRef.push();
+      newPagamentoRef.set({
+        cliente: cliente,
+        dataVenda: dataVenda,
+        valorPago: valorPago,
+        dataPagamento: new Date().toLocaleString()
+      }).then(() => {
+        // Also save payment info to a new node "pagamentosDetalhados"
+        const pagamentosDetalhadosRef = database.ref('pagamentosDetalhados');
+        const newPagamentoDetalhadoRef = pagamentosDetalhadosRef.push();
+        newPagamentoDetalhadoRef.set({
+          cliente: cliente,
+          dataVenda: dataVenda,
+          valorPago: valorPago,
+          dataPagamento: new Date().toLocaleString()
+        }).catch((error) => {
+          alert('Erro ao registrar pagamento detalhado: ' + error.message);
+        });
+
+        // After payment registered, update valorUnitario in vendas node
+        const vendaRef = database.ref(`vendas/${vendaKey}/valorUnitario`);
+        vendaRef.transaction(currentValue => {
+          const current = parseFloat(currentValue) || 0;
+          const novoValor = current - valorPago;
+          return novoValor > 0 ? novoValor : 0;
+        }).then(() => {
+          alert('Pagamento registrado com sucesso!');
+          modal.classList.add('hidden');
+          paymentForm.reset();
+
+          // Update the valorUnitario displayed and remove card if zero or less
+          const valorUnitarioSpan = document.getElementById(`valorUnitario-${cliente}-${dataVenda}`);
+          if (valorUnitarioSpan) {
+            let novoValor = parseFloat(valorUnitarioSpan.textContent) - valorPago;
+            if (novoValor <= 0) {
+              // Remove card
+              const card = valorUnitarioSpan.closest('div.bg-white');
+              if (card) {
+                card.remove();
+              }
+            } else {
+              valorUnitarioSpan.textContent = novoValor.toFixed(2);
+            }
+          }
+        }).catch((error) => {
+          alert('Erro ao atualizar valorUnitario: ' + error.message);
+        });
+      }).catch((error) => {
+        alert('Erro ao registrar pagamento: ' + error.message);
+      });
+    };
+
+    // Cancel button closes modal
+    document.getElementById('cancelPaymentBtn').onclick = function() {
+      modal.classList.add('hidden');
+      paymentForm.reset();
+    };
+  }
+
+    // Display "saidas" as cards
+    saidasRef.on('value', (snapshot) => {
+      const saidas = snapshot.val();
+      allSaidas = [];
+      const historicoSaidasContainer = document.getElementById('historicoSaidas');
+      historicoSaidasContainer.innerHTML = ''; // Clear existing content
+
+      if (saidas) {
+        // Sort keys by dataHoraSaida descending (newest first)
+        const sortedKeys = Object.keys(saidas).sort((a, b) => {
+          const dateA = new Date(saidas[a].dataHoraSaida || 0);
+          const dateB = new Date(saidas[b].dataHoraSaida || 0);
+          return dateB - dateA;
+        });
+
+        sortedKeys.forEach((key) => {
+          const saida = saidas[key];
+          allSaidas.push(saida);
+        });
+
+        // Group saidas by date (YYYY-MM-DD)
+        const groupedByDate = {};
+        Object.values(saidas).forEach(saida => {
+          const dateStr = saida.dataHoraSaida ? saida.dataHoraSaida.split(' ')[0] : 'Sem data';
+          if (!groupedByDate[dateStr]) {
+            groupedByDate[dateStr] = [];
+          }
+          groupedByDate[dateStr].push(saida);
+        });
+
+        // Sort dates descending (most recent first)
+        const sortedDates = Object.keys(groupedByDate).sort((a, b) => {
+          if (a === 'Sem data') return 1;
+          if (b === 'Sem data') return -1;
+          return new Date(b) - new Date(a);
+        });
+
+        // Flatten the grouped saidas in order
+        const orderedSaidas = [];
+        sortedDates.forEach(date => {
+          orderedSaidas.push(...groupedByDate[date]);
+        });
+
+        displayFilteredSaidas(orderedSaidas);
+      } else {
+        historicoSaidasContainer.innerHTML = '<p class="text-gray-500">Nenhum histórico de saída encontrado.</p>';
+      }
+    });
+
+    // Function to display filtered saidas
+    function displayFilteredSaidas(saidas) {
+      const historicoSaidasContainer = document.getElementById('historicoSaidas');
+      historicoSaidasContainer.innerHTML = '';
+
+      if (saidas.length === 0) {
+        historicoSaidasContainer.innerHTML = '<p class="text-gray-500">Nenhum histórico de saída encontrado.</p>';
+        return;
+      }
+
+      saidas.forEach((saida) => {
+        const card = document.createElement('div');
+        card.className = 'bg-gray-100 border-2 border-gray-300 rounded-lg p-4 cursor-pointer';
+
+        // Get product name from produtosMap using produtoKey or codigoProduto
+        let productName = 'Desconhecido';
+        if (saida.produtoKey && produtosMap[saida.produtoKey]) {
+          productName = produtosMap[saida.produtoKey].nome || productName;
+        } else if (saida.codigoProduto) {
+          // Try to find product by codigoProduto in produtosMap values
+          const foundProduto = Object.values(produtosMap).find(p => p.codigoProduto === saida.codigoProduto);
+          if (foundProduto) {
+            productName = foundProduto.nome || productName;
+          }
+        }
+
+        card.innerHTML = `
+          <h3 class="text-blue-500 text-xl font-bold">${saida.nome || 'Aparelho'}</h3>
+          <p class="text-gray-700">Produto: ${productName}</p>
+          <p class="text-gray-700">codigoProduto: ${saida.codigoProduto || 'Desconhecido'}</p>
+          <p class="text-gray-700">Data da Venda: ${saida.dataVenda || 'Não especificada'}</p>
+          <p class="text-gray-700">Valor Devido: R$ ${saida.valordevido || 'Desconhecido'}</p>
+          <p class="text-gray-700">Quantidade Utilizada: ${saida.quantidadeRetirada || 'Desconhecido'}</p>
+          <p class="text-gray-700">dataHoraSaida: ${saida.dataHoraSaida || 'Não especificada'}</p>
+          <p class="text-gray-700">metodoPagamento: ${saida.metodoPagamento || 'Desconhecido'}</p>
+          <p class="text-gray-700">nome: ${saida.nome || 'Desconhecido'}</p>
+          <p class="text-gray-700">produtoKey: ${saida.produtoKey || 'Desconhecido'}</p>
+          <p class="text-gray-700">quantidadeUtilizada: ${saida.quantidadeUtilizada || 'Desconhecido'}</p>
+          <p class="text-gray-700">valorTotal: ${saida.valorTotal || 'Desconhecido'}</p>
+        `;
+
+        // Add click event to show details modal
+        card.addEventListener('click', () => {
+          showDetailsModal(saida);
+        });
+
+        historicoSaidasContainer.appendChild(card);
+      });
+    }
+
+  // Search input event listener
+  document.getElementById('searchInput').addEventListener('input', (e) => {
+    const searchTerm = e.target.value.toLowerCase();
+
+    const filteredSaidas = allSaidas.filter(saida => {
+      return (
+        (saida.nome && saida.nome.toLowerCase().includes(searchTerm)) ||
+        (saida.modelo && saida.modelo.toLowerCase().includes(searchTerm)) ||
+        (saida.cliente && saida.cliente.toLowerCase().includes(searchTerm)) ||
+        (saida.problema && saida.problema.toLowerCase().includes(searchTerm)) ||
+        (saida.dataHoraSaida && saida.dataHoraSaida.toLowerCase().includes(searchTerm))
+      );
+    });
+
+    displayFilteredSaidas(filteredSaidas);
+  });
+  </script>
+
+  <!-- Modal for showing details -->
+  <div id="detailsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+    <div class="bg-white rounded-lg shadow-lg max-w-lg w-full p-6 relative">
+      <button id="closeModalBtn" class="absolute top-2 right-2 text-gray-600 hover:text-gray-900 text-2xl font-bold">&times;</button>
+      <h3 id="modalTitle" class="text-blue-500 text-2xl font-bold mb-4"></h3>
+      <div id="modalContent" class="text-gray-700 space-y-2"></div>
+    </div>
+  </div>
+
+  <script>
+    // Function to show details modal
+    function showDetailsModal(saida) {
+      const modal = document.getElementById('detailsModal');
+      const modalTitle = document.getElementById('modalTitle');
+      const modalContent = document.getElementById('modalContent');
+
+      modalTitle.textContent = saida.nome || 'Aparelho';
+      modalContent.innerHTML = `
+        <p class="text-gray-700">codigoProduto: ${saida.codigoProduto || 'Desconhecido'}</p>
+          <p class="text-gray-700">Data da Venda: ${saida.dataVenda || 'Não especificada'}</p>
+          <p class="text-gray-700">Valor Devido: R$ ${saida.valordevido || 'Desconhecido'}</p>
+          <p class="text-gray-700">Quantidade Utilizada: ${saida.quantidadeRetirada || 'Desconhecido'}</p>
+          <p class="text-gray-700">dataHoraSaida: ${saida.dataHoraSaida || 'Não especificada'}</p>
+        <p class="text-gray-700">metodoPagamento: ${saida.metodoPagamento || 'Desconhecido'}</p>
+        <p class="text-gray-700">nome: ${saida.nome || 'Desconhecido'}</p>
+        <p class="text-gray-700">produtoKey: ${saida.produtoKey || 'Desconhecido'}</p>
+        <p class="text-gray-700">quantidadeUtilizada: ${saida.quantidadeUtilizada || 'Desconhecido'}</p>
+        <p class="text-gray-700">valorTotal: ${saida.valorTotal || 'Desconhecido'}</p>
+      `;
+
+      modal.classList.remove('hidden');
+    }
+
+    // Close modal button event
+    document.getElementById('closeModalBtn').addEventListener('click', () => {
+      document.getElementById('detailsModal').classList.add('hidden');
+    });
+
+    // Close modal when clicking outside modal content
+    document.getElementById('detailsModal').addEventListener('click', (event) => {
+      if (event.target.id === 'detailsModal') {
+        document.getElementById('detailsModal').classList.add('hidden');
+      }
+    });
+  </script>
+
+  <script>
+    // Toggle user submenu visibility on click
+    document.getElementById('userMenu').addEventListener('click', function(event) {
+      event.stopPropagation();
+      const submenu = document.getElementById('userSubmenu');
+      submenu.classList.toggle('hidden');
+    });
+
+    // Hide submenu if clicking outside
+    document.addEventListener('click', function() {
+      const submenu = document.getElementById('userSubmenu');
+      if (!submenu.classList.contains('hidden')) {
+        submenu.classList.add('hidden');
+      }
+    });
+  </script>
+
+  <script>
+  </script>
+
+  <!-- Modal for payment registration -->
+  <div id="paymentModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+    <div class="bg-white rounded-lg shadow-lg max-w-md w-full p-6 relative">
+      <h3 id="paymentModalTitle" class="text-blue-500 text-2xl font-bold mb-4"></h3>
+      <form id="paymentForm" class="text-gray-700">
+        <div id="paymentModalContent"></div>
+      </form>
+    </div>
+  </div>
+
+  </body>
+</html>

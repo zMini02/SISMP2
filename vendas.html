@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="min-h-screen">
+
+<head>
+  <meta charset="utf-8" />
+  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+  <title>Estoque</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="shortcut icon" href="favicongrow.png" type="image/x-icon">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+</head>
+
+<body class="bg-white min-h-screen flex flex-col">
+  <div class="flex flex-1">
+    <button id="sidebarToggle" class="md:hidden absolute top-4 left-4 z-50 p-2 rounded-md bg-blue-500 text-white focus:outline-none">
+      <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="3" y1="12" x2="21" y2="12"></line>
+        <line x1="3" y1="6" x2="21" y2="6"></line>
+        <line x1="3" y1="18" x2="21" y2="18"></line>
+      </svg>
+    </button>
+    <div id="sidebar" class="fixed inset-y-0 left-0 w-64 bg-blue-500 p-4 flex flex-col transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out z-40">
+      <h2 class="text-white text-xl font-semibold mb-6 border-b border-blue-400 pb-2">Menu Principal</h2>
+      <nav class="flex flex-col space-y-3 flex-grow overflow-y-auto">
+        <a href="paginaprincipal.html" class="bg-blue-400 hover:bg-blue-600 text-white py-2 rounded-md flex items-center px-3">
+          <i class="fas fa-bars text-lg mr-3"></i>
+          <span>Menu Principal</span>
+        </a>
+        <a href="vendas.html" class="bg-blue-400 hover:bg-blue-600 text-white py-2 rounded-md flex items-center px-3">
+          <i class="fas fa-cash-register text-lg mr-3"></i>
+          <span>Registrar venda</span>
+        </a>
+        <a href="fluxocaixa.html" class="bg-blue-400 hover:bg-blue-600 text-white py-2 rounded-md flex items-center px-3">
+          <i class="fas fa-wallet text-lg mr-3"></i>
+          <span>Fluxo de caixa</span>
+        </a>
+        <a href="garantia.html" class="bg-blue-400 hover:bg-blue-600 text-white py-2 rounded-md flex items-center px-3">
+          <i class="fas fa-shield-alt text-lg mr-3"></i>
+          <span>Garantia</span>
+        </a>
+        <a href="fornecedores.html" class="bg-blue-400 hover:bg-blue-600 text-white py-2 rounded-md flex items-center px-3">
+          <i class="fas fa-truck text-lg mr-3"></i>
+          <span>Fornecedores</span>
+        </a>
+        <a href="orcamento.html" class="bg-blue-400 hover:bg-blue-600 text-white py-2 rounded-md flex items-center px-3">
+          <i class="fas fa-calculator text-lg mr-3"></i>
+          <span>Orçamento</span>
+        </a>
+        <a href="estoque.html" class="bg-blue-400 hover:bg-blue-600 text-white py-2 rounded-md flex items-center px-3">
+          <i class="fas fa-cog text-lg mr-3"></i>
+          <span>Estoque de peças</span>
+        </a>
+        <a href="historicodevendas.html" class="bg-blue-400 hover:bg-blue-600 text-white py-2 rounded-md flex items-center px-3">
+          <i class="fas fa-history text-lg mr-3"></i>
+          <span>Historico de vendas</span>
+        </a>
+        <a href="devedores.html" class="bg-blue-400 hover:bg-blue-600 text-white py-2 rounded-md flex items-center px-3">
+          <i class="fas fa-user-clock text-lg mr-3"></i>
+          <span>Devedores</span>
+        </a>
+        <a href="usuarios.html" class="bg-blue-400 hover:bg-blue-600 text-white py-2 rounded-md flex items-center px-3">
+          <i class="fas fa-users text-lg mr-3"></i>
+          <span>usuarios</span>
+        </a>
+        <a href="dadosempresa.html" class="bg-blue-400 hover:bg-blue-600 text-white py-2 rounded-md flex items-center px-3">
+          <i class="fas fa-building text-lg mr-3"></i>
+          <span>Cadastrar empresa</span>
+        </a>
+        <a href="index.html" class="bg-blue-400 hover:bg-blue-600 text-white py-2 rounded-md flex items-center px-3">
+          <i class="fas fa-sign-out-alt text-lg mr-3"></i>
+          <span>sair</span>
+        </a>
+      </nav>
+    </div>
+
+    <div id="mainContent" class="flex-1 p-4 overflow-auto md:ml-64">
+      <div class="flex justify-between items-center mb-4">
+        <div class="flex-1 flex justify-center">
+          <img alt="Logo" class="h-10" src="logoprincipal.png" />
+        </div>
+        <div class="flex items-center space-x-4">
+          <i class="fas fa-bell text-blue-500 text-2xl"></i>
+          <i class="fas fa-user-circle text-blue-500 text-2xl"></i>
+        </div>
+      </div>
+
+      <div class="mb-4">
+        <input type="text" id="searchInput" placeholder="Pesquisar peças..." class="w-full border border-gray-300 rounded px-3 py-2" />
+      </div>
+
+      <section class="mb-8">
+        <h2 class="text-blue-500 text-2xl font-bold mb-4">Estoque Atual</h2>
+        <div id="stockCards" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+      </section>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div id="sellModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+    <div class="bg-white rounded-lg p-6 w-full max-w-md max-h-[80vh] overflow-auto relative">
+      <h2 class="text-green-600 text-xl font-bold mb-4">Registrar Venda de Acessório</h2>
+      <form id="sellForm" class="space-y-4">
+        <div>
+          <label for="sellQuantity" class="block font-semibold mb-1">Quantidade Retirada:</label>
+          <input type="number" id="sellQuantity" min="1" required class="w-full border border-gray-300 rounded-md p-2" />
+        </div>
+        <div>
+          <label for="sellClient" class="block font-semibold mb-1">Cliente:</label>
+          <input type="text" id="sellClient" required class="w-full border border-gray-300 rounded-md p-2" />
+        </div>
+        <div>
+          <label for="paymentMethod" class="block font-semibold mb-1">Forma de Pagamento:</label>
+          <select id="paymentMethod" required class="w-full border border-gray-300 rounded-md p-2">
+            <option value="" disabled selected>Selecione a forma de pagamento</option>
+            <option value="Pix">Pix</option>
+            <option value="Dinheiro">Dinheiro</option>
+            <option value="Cartão">Cartão</option>
+            <option value="Devendo">Devendo</option>
+          </select>
+        </div>
+        <div>
+          <label for="sellDetails" class="block font-semibold mb-1">Detalhes do Acessório:</label>
+          <textarea id="sellDetails" rows="3" readonly class="w-full border border-gray-300 rounded-md p-2 bg-gray-100"></textarea>
+        </div>
+        <div id="pixQRCode" class="hidden text-center">
+          <p class="text-green-600 font-semibold mb-2">Escaneie o QR Code para pagar via Pix:</p>
+          <img src="qrcodepix.png" alt="QR Code Pix" class="mx-auto w-48 h-48" />
+          <p class="mt-2 text-gray-700 font-semibold">Antônio Silva de Oliveira</p>
+          <p class="text-gray-600">Banco do Brasil S.A.</p>
+          <p id="valorPix" class="text-gray-700 font-bold"></p>
+        </div>
+        <div class="flex justify-end space-x-2">
+          <button type="button" id="cancelSellBtn" class="bg-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-400">Cancelar</button>
+          <button type="submit" class="bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700">Finalizar Venda</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBweOMaOxFGTJRa-6od4_tqpJZ5R1-I61o",
+      authDomain: "sismp2-651cf.firebaseapp.com",
+      databaseURL: "https://sismp2-651cf-default-rtdb.firebaseio.com",
+      projectId: "sismp2-651cf",
+      storageBucket: "sismp2-651cf.firebasestorage.app",
+      messagingSenderId: "181333188571",
+      appId: "1:181333188571:web:73c41411c749d3807ad1fe",
+      measurementId: "G-CR6KFGTWK0"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebar = document.getElementById('sidebar');
+    const mainContent = document.getElementById('mainContent');
+    sidebarToggle.addEventListener('click', () => {
+      sidebar.classList.toggle('-translate-x-full');
+      mainContent.classList.toggle('md:ml-64');
+    });
+
+    const stockCards = document.getElementById('stockCards');
+    const searchInput = document.getElementById('searchInput');
+    function createCard(key, piece) {
+      const card = document.createElement('div');
+      card.className = 'bg-white rounded-lg shadow p-4 flex flex-col';
+      if (piece.quantidade === 1) card.classList.add('bg-red-500', 'text-white');
+      else if (piece.quantidade === 2) card.classList.add('bg-yellow-300');
+
+      card.innerHTML = `
+        <h3 class="text-lg font-semibold mb-2">${piece.nome}</h3>
+        ${piece.codigoProduto ? `<p class="text-sm text-gray-600">Código do Produto: ${piece.codigoProduto}</p>` : ''}
+        <p class="mb-4">Quantidade: ${piece.quantidade}</p>
+        <p class="mb-4">Valor: R$ ${(piece.valor ?? piece.valorEntrada ?? 0).toFixed(2)}</p>
+      `;
+
+      const btn = document.createElement('button');
+      btn.textContent = 'Registrar Venda';
+      btn.className = 'bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600';
+      btn.onclick = () => openSellModal(key, piece);
+      card.appendChild(btn);
+      return card;
+    }
+
+    function renderStockCards() {
+      database.ref('estoque').once('value').then(snapshot => {
+        const data = snapshot.val() || {};
+        const filter = searchInput.value.toLowerCase();
+        stockCards.innerHTML = '';
+        Object.entries(data).forEach(([key, piece]) => {
+          if (!piece.nome.toLowerCase().includes(filter)) return;
+          stockCards.appendChild(createCard(key, piece));
+        });
+      });
+    }
+    searchInput.addEventListener('input', renderStockCards);
+
+    let currentSellKey = null;
+    let currentSellPiece = null;
+
+    function openSellModal(key, piece) {
+      currentSellKey = key;
+      currentSellPiece = piece;
+      document.getElementById('sellQuantity').value = 1;
+      document.getElementById('sellClient').value = '';
+      document.getElementById('paymentMethod').value = '';
+      const valorUnitario = (piece.valor ?? piece.valorEntrada ?? 0).toFixed(2);
+      document.getElementById('sellDetails').value = `Nome: ${piece.nome}\nQuantidade em estoque: ${piece.quantidade}\nValor unitário: R$ ${valorUnitario}${piece.codigoProduto ? `\nCódigo do Produto: ${piece.codigoProduto}` : ''}`;
+      document.getElementById('pixQRCode').classList.add('hidden');
+      document.getElementById('valorPix').textContent = `Valor: R$ ${valorUnitario}`;
+      sellModal.classList.remove('hidden');
+    }
+
+    document.getElementById('cancelSellBtn').onclick = () => sellModal.classList.add('hidden');
+    document.getElementById('paymentMethod').onchange = e => {
+      document.getElementById('pixQRCode').classList.toggle('hidden', e.target.value !== 'Pix');
+    };
+
+    document.getElementById('sellForm').onsubmit = e => {
+      e.preventDefault();
+      const qty = parseInt(document.getElementById('sellQuantity').value);
+      const client = document.getElementById('sellClient').value.trim();
+      const payment = document.getElementById('paymentMethod').value;
+
+      if (!qty || qty < 1 || !client || !payment || qty > currentSellPiece.quantidade) {
+        alert('Verifique os dados preenchidos.');
+        return;
+      }
+
+      const vendaData = {
+        nome: currentSellPiece.nome,
+        quantidadeRetirada: qty,
+        cliente: client,
+        formaPagamento: payment,
+        valorUnitario: currentSellPiece.valorVenda || currentSellPiece.valor,
+        dataVenda: new Date().toLocaleString('pt-BR', { hour12: false })
+      };
+
+      database.ref('vendas').push(vendaData).then(() => {
+        const novaQtd = currentSellPiece.quantidade - qty;
+        return database.ref(`estoque/${currentSellKey}`).update({ quantidade: novaQtd });
+      }).then(() => {
+        alert('Venda registrada com sucesso!');
+        sellModal.classList.add('hidden');
+        renderStockCards();
+      }).catch(err => alert('Erro: ' + err.message));
+    };
+
+    renderStockCards();
+  </script>
+</body>
+
+</html>
