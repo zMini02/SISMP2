@@ -121,6 +121,10 @@
           </select>
         </div>
         <div>
+          <label for="sellUnitPrice" class="block font-semibold mb-1">Valor Unitário (R$):</label>
+          <input type="number" id="sellUnitPrice" min="0" step="0.01" required class="w-full border border-gray-300 rounded-md p-2" />
+        </div>
+        <div>
           <label for="sellDetails" class="block font-semibold mb-1">Detalhes do Acessório:</label>
           <textarea id="sellDetails" rows="3" readonly class="w-full border border-gray-300 rounded-md p-2 bg-gray-100"></textarea>
         </div>
@@ -173,7 +177,6 @@
         <h3 class="text-lg font-semibold mb-2">${piece.nome}</h3>
         ${piece.codigoProduto ? `<p class="text-sm text-gray-600">Código do Produto: ${piece.codigoProduto}</p>` : ''}
         <p class="mb-4">Quantidade: ${piece.quantidade}</p>
-        <p class="mb-4">Valor: R$ ${(piece.valor ?? piece.valorEntrada ?? 0).toFixed(2)}</p>
       `;
 
       const btn = document.createElement('button');
@@ -207,6 +210,7 @@
       document.getElementById('sellClient').value = '';
       document.getElementById('paymentMethod').value = '';
       const valorUnitario = (piece.valor ?? piece.valorEntrada ?? 0).toFixed(2);
+      document.getElementById('sellUnitPrice').value = valorUnitario;
       document.getElementById('sellDetails').value = `Nome: ${piece.nome}\nQuantidade em estoque: ${piece.quantidade}\nValor unitário: R$ ${valorUnitario}${piece.codigoProduto ? `\nCódigo do Produto: ${piece.codigoProduto}` : ''}`;
       document.getElementById('pixQRCode').classList.add('hidden');
       document.getElementById('valorPix').textContent = `Valor: R$ ${valorUnitario}`;
@@ -223,8 +227,9 @@
       const qty = parseInt(document.getElementById('sellQuantity').value);
       const client = document.getElementById('sellClient').value.trim();
       const payment = document.getElementById('paymentMethod').value;
+      const unitPriceInput = parseFloat(document.getElementById('sellUnitPrice').value);
 
-      if (!qty || qty < 1 || !client || !payment || qty > currentSellPiece.quantidade) {
+      if (!qty || qty < 1 || !client || !payment || qty > currentSellPiece.quantidade || isNaN(unitPriceInput) || unitPriceInput < 0) {
         alert('Verifique os dados preenchidos.');
         return;
       }
@@ -234,7 +239,7 @@
         quantidadeRetirada: qty,
         cliente: client,
         formaPagamento: payment,
-        valorUnitario: currentSellPiece.valorVenda || currentSellPiece.valor,
+        valorUnitario: unitPriceInput,
         dataVenda: new Date().toLocaleString('pt-BR', { hour12: false })
       };
 
