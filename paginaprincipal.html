@@ -247,19 +247,22 @@
         // Fetch estoque data once and count items with quantidade == 2 and quantidade == 1
         const estoqueSnapshot = await estoqueRef.once('value');
         const estoque = estoqueSnapshot.val();
-        if (estoque) {
-          Object.values(estoque).forEach((item) => {
-            if (item.quantidade === 2) {
-              pecasQuaseEsgotandoCount++;
-            }
-            if (item.quantidade === 1) {
-              pecasEsgotandoCount++;
-            }
-          });
-          // Update "Peças em estoque" count with total number of items in estoque
-          const totalPecas = Object.keys(estoque).length;
-          document.getElementById('finalizadosCount').textContent = totalPecas;
-        }
+          if (estoque) {
+            let totalQuantidade = 0;
+            Object.values(estoque).forEach((item) => {
+              if (item.quantidade === 2) {
+                pecasQuaseEsgotandoCount++;
+              }
+              if (item.quantidade === 1) {
+                pecasEsgotandoCount++;
+              }
+              if (typeof item.quantidade === 'number') {
+                totalQuantidade += item.quantidade;
+              }
+            });
+            // Update "Peças em estoque" count with sum of quantidade values
+            document.getElementById('finalizadosCount').textContent = totalQuantidade;
+          }
 
         const totalPendentes = pendentesCount + entradaPendentesCount;
         document.getElementById('emAndamentoCount').textContent = pecasQuaseEsgotandoCount; // Update with estoque count for quantidade == 2
