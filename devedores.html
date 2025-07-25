@@ -11,6 +11,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
   <!-- Firebase Realtime Database -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body class="bg-white min-h-screen flex flex-col">
   <!-- Sidebar toggle button for small screens -->
@@ -171,24 +172,77 @@
     devedoresContainer.innerHTML = ''; // Clear existing cards
 
     if (vendas) {
-          Object.entries(vendas).forEach(([key, venda]) => {
-            if (venda.formaPagamento === 'Devendo') {
-              const card = document.createElement('div');
-              card.className = 'bg-white border border-gray-300 rounded-lg p-4 shadow hover:shadow-lg transition cursor-pointer';
+      // Group vendas by cliente
+      const vendasPorCliente = {};
+      Object.entries(vendas).forEach(([key, venda]) => {
+        if (venda.formaPagamento === 'Devendo') {
+          const cliente = venda.cliente || 'Cliente Desconhecido';
+          if (!vendasPorCliente[cliente]) {
+            vendasPorCliente[cliente] = [];
+          }
+          vendasPorCliente[cliente].push({ key, venda });
+        }
+      });
 
-              card.innerHTML = `
-                <h3 class="text-blue-600 text-lg font-semibold mb-2">${venda.cliente || 'Cliente Desconhecido'}</h3>
-                <p><strong>Data da Venda:</strong> ${venda.dataVenda || 'Não especificada'}</p>
-                <p><strong>Nome:</strong> ${venda.nome || 'Não especificado'}</p>
-                <p><strong>Quantidade Retirada:</strong> ${venda.quantidadeRetirada || 'Desconhecido'}</p>
-              <p><strong>Valor Unitário:</strong> R$ <span id="valorUnitario-${venda.cliente}-${venda.dataVenda}">${venda.valorUnitario || 'Desconhecido'}</span></p>
-              <p><strong>Forma de Pagamento:</strong> ${venda.formaPagamento}</p>
-              <button class="mt-2 bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition" onclick="registrarPagamento('${key}', '${venda.cliente}', '${venda.dataVenda}', ${venda.valorUnitario})">Registrar Pagamento</button>
-              `;
+      // Create one card per cliente with all their vendas
+          Object.entries(vendasPorCliente).forEach(([cliente, vendasCliente]) => {
+        let totalValorUnitario = 0;
+        let totalValorTotal = 0;
 
-              devedoresContainer.appendChild(card);
-            }
+        vendasCliente.forEach(({ key, venda }) => {
+          totalValorUnitario += parseFloat(venda.valorUnitario) || 0;
+          const valorTotalVenda = venda.valorTotal ? parseFloat(venda.valorTotal) : (parseFloat(venda.valorUnitario) || 0) * (parseFloat(venda.quantidadeRetirada) || 0);
+          totalValorTotal += valorTotalVenda;
+        });
+
+        // Skip creating card if totalValorTotal is zero or less
+        if (totalValorTotal <= 0) {
+          return;
+        }
+
+        const card = document.createElement('div');
+        card.className = 'bg-white border border-gray-300 rounded-lg p-4 shadow hover:shadow-lg transition cursor-pointer';
+
+        let dataVendas = [];
+        let nomes = [];
+        let quantidades = [];
+        let valoresUnitarios = [];
+        let formasPagamento = [];
+
+        vendasCliente.forEach(({ key, venda }) => {
+          dataVendas.push(venda.dataVenda || 'Não especificada');
+          nomes.push(venda.nome || 'Não especificado');
+          quantidades.push(venda.quantidadeRetirada || 'Desconhecido');
+          valoresUnitarios.push(venda.valorUnitario || 'Desconhecido');
+          formasPagamento.push(venda.formaPagamento || 'Desconhecido');
+        });
+
+        const vendasHtml = `
+          <p><strong>Data da Venda:</strong> ${dataVendas.join(', ')}</p>
+          <p><strong>Nome:</strong> ${nomes.join(', ')}</p>
+          <p><strong>Quantidade Retirada:</strong> ${quantidades.join(', ')}</p>
+          <p><strong>Valor Unitário:</strong> R$ ${valoresUnitarios.join(', ')}</p>
+          <p><strong>Forma de Pagamento:</strong> ${formasPagamento.join(', ')}</p>
+          <p><strong>Valor Total:</strong> R$ ${totalValorTotal.toFixed(2)}</p>
+        `;
+
+        card.innerHTML = `
+          <h3 class="text-blue-600 text-lg font-semibold mb-4">${cliente}</h3>
+          ${vendasHtml}
+          <button class="mt-2 bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition" onclick="registrarPagamentoCliente('${cliente}', ${totalValorTotal.toFixed(2)})">Registrar Pagamento</button>
+          <button class="mt-2 ml-2 bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition download-pdf-btn">Baixar PDF</button>
+        `;
+
+        devedoresContainer.appendChild(card);
+
+        // Add event listener for the download PDF button
+        const downloadBtn = card.querySelector('.download-pdf-btn');
+        if (downloadBtn) {
+          downloadBtn.addEventListener('click', () => {
+            downloadCardPDF(cliente, totalValorTotal, vendasCliente);
           });
+        }
+      });
     } else {
       devedoresContainer.innerHTML = '<p class="text-gray-500">Nenhum devedor encontrado.</p>';
     }
@@ -198,18 +252,22 @@
     // Notification popup function removed as per user request
   }
 
-  // Function to handle payment registration button click
+  // Function to handle payment registration button click for individual sale
   function registrarPagamento(vendaKey, cliente, dataVenda, valorUnitario) {
-    // Show modal with payment input
+    // existing code unchanged
+  }
+
+  // New function to handle payment registration for entire client
+  function registrarPagamentoCliente(cliente, totalValorUnitario) {
     const modal = document.getElementById('paymentModal');
     const modalTitle = document.getElementById('paymentModalTitle');
     const modalContent = document.getElementById('paymentModalContent');
     const paymentForm = document.getElementById('paymentForm');
 
-    modalTitle.textContent = `Registrar pagamento para ${cliente} - Venda em ${dataVenda}`;
+    modalTitle.textContent = `Registrar pagamento para ${cliente} - Total devido: R$ ${totalValorUnitario.toFixed(2)}`;
     modalContent.innerHTML = `
       <label for="valorPago" class="block mb-2 font-semibold">Valor Pago (R$):</label>
-      <input type="number" id="valorPago" name="valorPago" min="0" max="${valorUnitario}" step="0.01" class="w-full border border-gray-300 rounded px-3 py-2" required />
+      <input type="number" id="valorPago" name="valorPago" min="0" max="${totalValorUnitario.toFixed(2)}" step="0.01" class="w-full border border-gray-300 rounded px-3 py-2" required />
       <div class="mt-4 flex justify-end space-x-2">
         <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition">Enviar</button>
         <button type="button" id="cancelPaymentBtn" class="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400 transition">Cancelar</button>
@@ -218,78 +276,70 @@
 
     modal.classList.remove('hidden');
 
-    // Remove previous event listeners to avoid duplicates
     paymentForm.onsubmit = null;
     const cancelBtnOld = document.getElementById('cancelPaymentBtn');
     if (cancelBtnOld) {
       cancelBtnOld.onclick = null;
     }
 
-    // Handle form submission
     paymentForm.onsubmit = function(event) {
       event.preventDefault();
       const valorPagoInput = document.getElementById('valorPago');
       const valorPago = parseFloat(valorPagoInput.value);
-      if (isNaN(valorPago) || valorPago <= 0 || valorPago > valorUnitario) {
+      if (isNaN(valorPago) || valorPago <= 0 || valorPago > totalValorUnitario) {
         alert('Por favor, insira um valor válido dentro do limite.');
         return;
       }
 
-      // Save payment info to Firebase under "pagamentos" node
+      // Save payment info to Firebase under "pagamentos"
       const pagamentosRef = database.ref('pagamentos');
       const newPagamentoRef = pagamentosRef.push();
       newPagamentoRef.set({
         cliente: cliente,
-        dataVenda: dataVenda,
         valorPago: valorPago,
         dataPagamento: new Date().toLocaleString()
       }).then(() => {
-        // Also save payment info to a new node "pagamentosDetalhados"
+        // Also save payment info to "pagamentosDetalhados"
         const pagamentosDetalhadosRef = database.ref('pagamentosDetalhados');
         const newPagamentoDetalhadoRef = pagamentosDetalhadosRef.push();
         newPagamentoDetalhadoRef.set({
           cliente: cliente,
-          dataVenda: dataVenda,
           valorPago: valorPago,
           dataPagamento: new Date().toLocaleString()
         }).catch((error) => {
           alert('Erro ao registrar pagamento detalhado: ' + error.message);
         });
 
-        // After payment registered, update valorUnitario in vendas node
-        const vendaRef = database.ref(`vendas/${vendaKey}/valorUnitario`);
-        vendaRef.transaction(currentValue => {
-          const current = parseFloat(currentValue) || 0;
-          const novoValor = current - valorPago;
-          return novoValor > 0 ? novoValor : 0;
-        }).then(() => {
-          alert('Pagamento registrado com sucesso!');
-          modal.classList.add('hidden');
-          paymentForm.reset();
-
-          // Update the valorUnitario displayed and remove card if zero or less
-          const valorUnitarioSpan = document.getElementById(`valorUnitario-${cliente}-${dataVenda}`);
-          if (valorUnitarioSpan) {
-            let novoValor = parseFloat(valorUnitarioSpan.textContent) - valorPago;
-            if (novoValor <= 0) {
-              // Remove card
-              const card = valorUnitarioSpan.closest('div.bg-white');
-              if (card) {
-                card.remove();
+        // After payment registered, update valorUnitario in all vendas of this client
+        const vendasRef = database.ref('vendas');
+        vendasRef.once('value').then(snapshot => {
+          const vendas = snapshot.val();
+          if (vendas) {
+            Object.entries(vendas).forEach(([key, venda]) => {
+              if (venda.cliente === cliente && venda.formaPagamento === 'Devendo') {
+                const vendaRef = database.ref(`vendas/${key}/valorUnitario`);
+                vendaRef.transaction(currentValue => {
+                  const current = parseFloat(currentValue) || 0;
+                  const novoValor = current - valorPago;
+                  return novoValor > 0 ? novoValor : 0;
+                });
               }
-            } else {
-              valorUnitarioSpan.textContent = novoValor.toFixed(2);
-            }
+            });
           }
-        }).catch((error) => {
-          alert('Erro ao atualizar valorUnitario: ' + error.message);
         });
+
+        alert('Pagamento registrado com sucesso!');
+        modal.classList.add('hidden');
+        paymentForm.reset();
+
+        // Refresh the UI by triggering the saidasRef 'value' event to update cards
+        saidasRef.once('value');
+
       }).catch((error) => {
         alert('Erro ao registrar pagamento: ' + error.message);
       });
     };
 
-    // Cancel button closes modal
     document.getElementById('cancelPaymentBtn').onclick = function() {
       modal.classList.add('hidden');
       paymentForm.reset();
@@ -488,6 +538,85 @@
       </form>
     </div>
   </div>
+
+  <script>
+  // Function to generate and download PDF for a card
+  function downloadCardPDF(cliente, totalValorTotal, vendasCliente) {
+    const doc = new window.jspdf.jsPDF();
+
+    // Title
+    doc.setFontSize(18);
+    doc.setTextColor(40, 40, 40);
+    doc.text(`Relatório de Vendas - Cliente: ${cliente}`, 14, 22);
+
+    // Total value
+    doc.setFontSize(14);
+    doc.setTextColor(0, 0, 128);
+    doc.text(`Valor Total Devido: R$ ${totalValorTotal.toFixed(2)}`, 14, 32);
+
+    // Draw a line
+    doc.setDrawColor(0, 0, 128);
+    doc.setLineWidth(0.5);
+    doc.line(14, 35, 196, 35);
+
+    // Table headers
+    const headers = ["#", "Data da Venda", "Nome", "Quantidade", "Valor Unitário", "Forma de Pagamento"];
+    const startX = 14;
+    let startY = 45;
+    const rowHeight = 8;
+
+    doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0);
+    doc.setFillColor(220, 220, 220);
+    doc.rect(startX - 2, startY - 6, 182, rowHeight, 'F');
+
+    let colX = startX;
+    const colWidths = [10, 35, 50, 25, 30, 40];
+    headers.forEach((header, i) => {
+      doc.text(header, colX, startY);
+      colX += colWidths[i];
+    });
+
+    startY += rowHeight;
+
+    // Table rows
+    vendasCliente.forEach(({ venda }, index) => {
+      if (startY > 280) {
+        doc.addPage();
+        startY = 20;
+      }
+      colX = startX;
+      doc.setFontSize(11);
+      doc.setTextColor(50, 50, 50);
+
+      doc.text(String(index + 1), colX, startY);
+      colX += colWidths[0];
+
+      doc.text(venda.dataVenda || 'Não especificada', colX, startY);
+      colX += colWidths[1];
+
+      doc.text(venda.nome || 'Não especificado', colX, startY);
+      colX += colWidths[2];
+
+      doc.text(String(venda.quantidadeRetirada || 'Desconhecido'), colX, startY);
+      colX += colWidths[3];
+
+      doc.text(`R$ ${venda.valorUnitario || 'Desconhecido'}`, colX, startY);
+      colX += colWidths[4];
+
+      doc.text(venda.formaPagamento || 'Desconhecido', colX, startY);
+
+      startY += rowHeight;
+    });
+
+    // Footer
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text(`Gerado em: ${new Date().toLocaleString()}`, 14, 290);
+
+    doc.save(`${cliente}_dados.pdf`);
+  }
+  </script>
 
   </body>
 </html>
