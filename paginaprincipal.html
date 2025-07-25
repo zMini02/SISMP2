@@ -272,8 +272,13 @@
         const historicoSaidasContainer = document.getElementById('historicoSaidas');
         historicoSaidasContainer.innerHTML = '';
         if (estoque) {
-          Object.values(estoque).forEach((item) => {
-            if (item.quantidade === 1) {
+          const pecasEsgotandoItems = Object.values(estoque).filter(item => item.quantidade === 1);
+          let currentIndex = 0;
+
+          function renderCards() {
+            historicoSaidasContainer.innerHTML = '';
+            const cardsToShow = pecasEsgotandoItems.slice(currentIndex, currentIndex + 4);
+            cardsToShow.forEach(item => {
               const card = document.createElement('div');
               card.className = 'bg-red-100 border-2 border-red-500 rounded-lg p-4';
               card.innerHTML = `
@@ -282,8 +287,15 @@
                 <p class="text-red-700">Quantidade: ${item.quantidade}</p>
               `;
               historicoSaidasContainer.appendChild(card);
+            });
+            currentIndex += 4;
+            if (currentIndex >= pecasEsgotandoItems.length) {
+              currentIndex = 0;
             }
-          });
+          }
+
+          renderCards();
+          setInterval(renderCards, 15000);
         }
       });
 
