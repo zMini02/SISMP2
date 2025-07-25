@@ -315,6 +315,7 @@
       const vendasRef = db.ref('vendas');
       vendasRef.on('value', snapshot => {
         const data = snapshot.val();
+        console.log('vendas data received:', data);
         if (!data) {
           salesData = [];
         } else {
@@ -327,6 +328,7 @@
       const pagamentosRef = db.ref('pagamentosDetalhados');
       pagamentosRef.on('value', snapshot => {
         const data = snapshot.val();
+        console.log('pagamentosDetalhados data received:', data);
         if (!data) {
           pagamentosData = [];
         } else {
