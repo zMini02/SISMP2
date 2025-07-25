@@ -128,13 +128,6 @@
           <label for="sellDetails" class="block font-semibold mb-1">Detalhes do Acessório:</label>
           <textarea id="sellDetails" rows="3" readonly class="w-full border border-gray-300 rounded-md p-2 bg-gray-100"></textarea>
         </div>
-        <div id="pixQRCode" class="hidden text-center">
-          <p class="text-green-600 font-semibold mb-2">Escaneie o QR Code para pagar via Pix:</p>
-          <img src="qrcodepix.png" alt="QR Code Pix" class="mx-auto w-48 h-48" />
-          <p class="mt-2 text-gray-700 font-semibold">Antônio Silva de Oliveira</p>
-          <p class="text-gray-600">Banco do Brasil S.A.</p>
-          <p id="valorPix" class="text-gray-700 font-bold"></p>
-        </div>
         <div class="flex justify-end space-x-2">
           <button type="button" id="cancelSellBtn" class="bg-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-400">Cancelar</button>
           <button type="submit" class="bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700">Finalizar Venda</button>
@@ -192,10 +185,18 @@
         const data = snapshot.val() || {};
         const filter = searchInput.value.toLowerCase();
         stockCards.innerHTML = '';
+        let foundAny = false;
         Object.entries(data).forEach(([key, piece]) => {
           if (!piece.nome.toLowerCase().includes(filter)) return;
           stockCards.appendChild(createCard(key, piece));
+          foundAny = true;
         });
+        if (!foundAny) {
+          const noResultMessage = document.createElement('p');
+          noResultMessage.textContent = 'Produto não encontrado. por favor, verificar se há produtos no estoque para cadastrar.';
+          noResultMessage.className = 'text-red-600 font-semibold text-center col-span-full';
+          stockCards.appendChild(noResultMessage);
+        }
       });
     }
     searchInput.addEventListener('input', renderStockCards);
@@ -212,14 +213,12 @@
       const valorUnitario = (piece.valor ?? piece.valorEntrada ?? 0).toFixed(2);
       document.getElementById('sellUnitPrice').value = valorUnitario;
       document.getElementById('sellDetails').value = `Nome: ${piece.nome}\nQuantidade em estoque: ${piece.quantidade}\nValor unitário: R$ ${valorUnitario}${piece.codigoProduto ? `\nCódigo do Produto: ${piece.codigoProduto}` : ''}`;
-      document.getElementById('pixQRCode').classList.add('hidden');
-      document.getElementById('valorPix').textContent = `Valor: R$ ${valorUnitario}`;
       sellModal.classList.remove('hidden');
     }
 
     document.getElementById('cancelSellBtn').onclick = () => sellModal.classList.add('hidden');
     document.getElementById('paymentMethod').onchange = e => {
-      document.getElementById('pixQRCode').classList.toggle('hidden', e.target.value !== 'Pix');
+      // Pix QR code toggle removed as per user request
     };
 
     document.getElementById('sellForm').onsubmit = e => {
